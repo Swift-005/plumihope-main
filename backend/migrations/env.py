@@ -19,6 +19,8 @@ from app.modules.campaigns.models import CampaignCategory, Campaign, CampaignEvi
 from app.modules.donations.models import Donation  # noqa
 from app.modules.payments.models import Payment  # noqa
 from app.modules.payouts.models import Payout  # noqa
+from app.modules.reports.models import Report, Review  # noqa
+from app.modules.disputes.models import Dispute  # noqa
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
