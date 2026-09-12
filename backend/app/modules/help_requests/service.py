@@ -13,6 +13,11 @@ from app.modules.agents.models import AgentProfile
 def create_help_request(db: Session, user_id: uuid.UUID, payload: HelpRequestCreate) -> HelpRequest:
     help_request = repository.create_help_request(db, user_id, payload.model_dump())
     repository.create_event(db, help_request.id, user_id, "SUBMITTED")
+
+    validate_transition(help_request.status, "AVAILABLE")
+    help_request = repository.update_status(db, help_request, "AVAILABLE")
+    repository.create_event(db, help_request.id, user_id, "AVAILABLE")
+
     return help_request
 
 
