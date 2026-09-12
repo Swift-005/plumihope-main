@@ -32,6 +32,39 @@ def get_help_request_or_404(db: Session, help_request_id: uuid.UUID) -> HelpRequ
     return help_request
 
 
+def _get_owning_agent_claim(db: Session, help_request_id: uuid.UUID, current_user_id: uuid.UUID) -> None:
+    agent_profile = db.query(AgentProfile).filter(AgentProfile.user_id == current_user_id).first()
+    if not agent_profile:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Requires Agent profile")
+
+    claim = repository.get_active_claim(db, help_request_id)
+    if not claim or claim.agent_profile_id != agent_profile.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not own this case")
+
+
+def start_investigation(db: Session, help_request_id: uuid.UUID, current_user_id: uuid.UUID) -> HelpRequest:
+    help_request = get_help_request_or_404(db, help_request_id)
+    _get_owning_agent_claim(db, help_request_id, current_user_id)
+
+    validate_transition(help_request.status, "INVESTIGATING")
+    help_request = repository.update_status(db, help_request, "INVESTIGATING")
+    repository.create_event(db, help_request_id, current_user_id, "INVESTIGATING")
+    return help_request
+
+
+def submit_eligibility_decision(
+    db: Session, help_request_id: uuid.UUID, current_user_id: uuid.UUID, eligible: bool, notes: str | None
+) -> HelpRequest:
+    help_request = get_help_request_or_404(db, help_request_id)
+    _get_owning_agent_claim(db, help_request_id, current_user_id)
+
+    target_status = "ELIGIBLE" if eligible else "NOT_ELIGIBLE"
+    validate_transition(help_request.status, target_status)
+    help_request = repository.update_status(db, help_request, target_status)
+    repository.create_event(db, help_request_id, current_user_id, target_status, notes)
+    return help_request
+
+
 def claim_help_request(db: Session, help_request_id: uuid.UUID, current_user_id: uuid.UUID) -> HelpRequest:
     help_request = get_help_request_or_404(db, help_request_id)
 

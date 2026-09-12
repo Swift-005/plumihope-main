@@ -3,11 +3,18 @@ import uuid
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
+from pydantic import BaseModel
+
 from app.core.database import get_db
 from app.modules.auth.dependencies import get_current_user
 from app.modules.help_requests import service
 from app.modules.help_requests.schemas import HelpRequestCreate, HelpRequestPublic, HelpRequestDetail
 from app.modules.users.models import User
+
+
+class EligibilityDecision(BaseModel):
+    eligible: bool
+    notes: str | None = None
 
 router = APIRouter(prefix="/help-requests", tags=["help-requests"])
 
@@ -41,3 +48,22 @@ def claim_help_request(
     db: Session = Depends(get_db),
 ):
     return service.claim_help_request(db, help_request_id, current_user.id)
+
+
+@router.post("/{help_request_id}/start-investigation", response_model=HelpRequestDetail)
+def start_investigation(
+    help_request_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return service.start_investigation(db, help_request_id, current_user.id)
+
+
+@router.post("/{help_request_id}/eligibility", response_model=HelpRequestDetail)
+def submit_eligibility_decision(
+    help_request_id: uuid.UUID,
+    payload: EligibilityDecision,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return service.submit_eligibility_decision(db, help_request_id, current_user.id, payload.eligible, payload.notes)
