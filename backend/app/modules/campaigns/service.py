@@ -112,3 +112,58 @@ def add_evidence(db: Session, campaign_id: uuid.UUID, user_id: uuid.UUID, payloa
 def list_evidence(db: Session, campaign_id: uuid.UUID):
     get_campaign_or_404(db, campaign_id)
     return repository.list_evidence(db, campaign_id)
+
+
+def discover_campaigns(
+    db: Session,
+    category_id: uuid.UUID | None,
+    status_filter: str | None,
+    search_text: str | None,
+    page: int,
+    page_size: int,
+):
+    items, total = repository.search_public_campaigns(
+        db, category_id, status_filter, search_text, page, page_size
+    )
+    has_next = (page * page_size) < total
+    return {
+        "items": items,
+        "page": page,
+        "page_size": page_size,
+        "total": total,
+        "has_next": has_next,
+    }
+
+
+def get_why_verified(db: Session, campaign_id: uuid.UUID) -> dict:
+    campaign = get_campaign_or_404(db, campaign_id)
+
+    from app.modules.agents.models import AgentProfile
+    from app.modules.help_requests.models import HelpRequest
+    from app.modules.reports.models import Review
+
+    agent_profile = db.query(AgentProfile).filter(AgentProfile.id == campaign.agent_profile_id).first()
+    agent_identity_reviewed = bool(agent_profile and agent_profile.status == "VERIFIED")
+
+    help_request = db.query(HelpRequest).filter(HelpRequest.id == campaign.help_request_id).first()
+    case_investigated = bool(help_request and help_request.status in {"ELIGIBLE", "CONVERTED_TO_CAMPAIGN"})
+
+    evidence_count = repository.count_evidence(db, campaign_id)
+    evidence_reviewed = evidence_count > 0
+
+    latest_approval = (
+        db.query(Review)
+        .filter(Review.entity_type == "campaign", Review.entity_id == campaign_id, Review.decision == "APPROVED")
+        .order_by(Review.created_at.desc())
+        .first()
+    )
+    campaign_moderator_approved = latest_approval is not None
+    last_reviewed_at = latest_approval.created_at if latest_approval else None
+
+    return {
+        "agent_identity_reviewed": agent_identity_reviewed,
+        "case_investigated": case_investigated,
+        "evidence_reviewed": evidence_reviewed,
+        "campaign_moderator_approved": campaign_moderator_approved,
+        "last_reviewed_at": last_reviewed_at,
+    }

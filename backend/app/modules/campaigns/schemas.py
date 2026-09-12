@@ -69,3 +69,15 @@ class CampaignEvidencePublic(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class WhyVerifiedResponse(BaseModel):
+    agent_identity_reviewed: bool
+    case_investigated: bool
+    evidence_reviewed: bool
+    campaign_moderator_approved: bool
+    last_reviewed_at: datetime | None
+    disclaimer: str = (
+        "Verified means the listed checks were completed and reviewed. "
+        "It is not a guarantee of absolute certainty."
+    )

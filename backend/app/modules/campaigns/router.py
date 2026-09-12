@@ -6,7 +6,8 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.modules.auth.dependencies import get_current_user
 from app.modules.campaigns import service
-from app.modules.campaigns.schemas import CampaignCreate, CampaignUpdateRequest, CampaignPublic, CampaignDetail, CampaignEvidenceCreate, CampaignEvidencePublic
+from app.modules.campaigns.schemas import CampaignCreate, CampaignUpdateRequest, CampaignPublic, CampaignDetail, CampaignEvidenceCreate, CampaignEvidencePublic, WhyVerifiedResponse
+from app.schemas.pagination import PaginatedResponse
 from app.modules.users.models import User
 
 router = APIRouter(prefix="/campaigns", tags=["campaigns"])
@@ -27,6 +28,18 @@ def list_campaigns(
     db: Session = Depends(get_db),
 ):
     return service.list_campaigns(db, status)
+
+
+@router.get("/discover", response_model=PaginatedResponse[CampaignPublic])
+def discover_campaigns(
+    category_id: uuid.UUID | None = Query(default=None),
+    status: str | None = Query(default=None),
+    q: str | None = Query(default=None),
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=20, ge=1, le=100),
+    db: Session = Depends(get_db),
+):
+    return service.discover_campaigns(db, category_id, status, q, page, page_size)
 
 
 @router.get("/{campaign_id}", response_model=CampaignDetail)
@@ -66,3 +79,8 @@ def add_evidence(
 @router.get("/{campaign_id}/evidence", response_model=list[CampaignEvidencePublic])
 def list_evidence(campaign_id: uuid.UUID, db: Session = Depends(get_db)):
     return service.list_evidence(db, campaign_id)
+
+
+@router.get("/{campaign_id}/why-verified", response_model=WhyVerifiedResponse)
+def get_why_verified(campaign_id: uuid.UUID, db: Session = Depends(get_db)):
+    return service.get_why_verified(db, campaign_id)

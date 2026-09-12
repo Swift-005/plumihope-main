@@ -62,3 +62,41 @@ def add_evidence(db: Session, campaign_id: uuid.UUID, uploader_id: uuid.UUID, da
 
 def list_evidence(db: Session, campaign_id: uuid.UUID) -> list[CampaignEvidence]:
     return db.query(CampaignEvidence).filter(CampaignEvidence.campaign_id == campaign_id).all()
+
+
+def search_public_campaigns(
+    db: Session,
+    category_id: uuid.UUID | None = None,
+    status_filter: str | None = None,
+    search_text: str | None = None,
+    page: int = 1,
+    page_size: int = 20,
+) -> tuple[list[Campaign], int]:
+    query = db.query(Campaign)
+
+    if status_filter:
+        query = query.filter(Campaign.status == status_filter)
+    else:
+        query = query.filter(Campaign.status.in_([
+            "ACTIVE", "TARGET_REACHED", "PAYOUT_PENDING",
+            "ASSISTANCE_PENDING", "ASSISTANCE_DELIVERED",
+            "FINAL_REVIEW", "SUCCESSFUL",
+        ]))
+
+    if category_id:
+        query = query.filter(Campaign.category_id == category_id)
+
+    if search_text:
+        like_pattern = f"%{search_text}%"
+        query = query.filter(
+            Campaign.title.ilike(like_pattern) | Campaign.description.ilike(like_pattern)
+        )
+
+    total = query.count()
+    items = (
+        query.order_by(Campaign.created_at.desc())
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+        .all()
+    )
+    return items, total
