@@ -25,3 +25,11 @@ def get_user_permission_codes(db: Session, user_id: uuid.UUID) -> set[str]:
         .all()
     )
     return {row[0] for row in rows}
+
+
+def update_user(db: Session, user: User, updates: dict) -> User:
+    for key, value in updates.items():
+        setattr(user, key, value)
+    db.commit()
+    db.refresh(user)
+    return user
