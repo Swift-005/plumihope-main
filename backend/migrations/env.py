@@ -21,6 +21,9 @@ from app.modules.payments.models import Payment  # noqa
 from app.modules.payouts.models import Payout  # noqa
 from app.modules.reports.models import Report, Review  # noqa
 from app.modules.disputes.models import Dispute  # noqa
+from app.modules.follows.models import Follow  # noqa
+from app.modules.notifications.models import Notification  # noqa
+from app.modules.audit.models import AuditLog  # noqa
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
