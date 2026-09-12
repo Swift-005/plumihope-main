@@ -24,6 +24,7 @@ from app.modules.disputes.models import Dispute  # noqa
 from app.modules.follows.models import Follow  # noqa
 from app.modules.notifications.models import Notification  # noqa
 from app.modules.audit.models import AuditLog  # noqa
+from app.modules.auth.models import RefreshToken  # noqa
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
