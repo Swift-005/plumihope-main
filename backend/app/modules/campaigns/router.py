@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.modules.auth.dependencies import get_current_user
 from app.modules.campaigns import service
-from app.modules.campaigns.schemas import CampaignCreate, CampaignUpdateRequest, CampaignPublic, CampaignDetail
+from app.modules.campaigns.schemas import CampaignCreate, CampaignUpdateRequest, CampaignPublic, CampaignDetail, CampaignEvidenceCreate, CampaignEvidencePublic
 from app.modules.users.models import User
 
 router = APIRouter(prefix="/campaigns", tags=["campaigns"])
@@ -51,3 +51,18 @@ def submit_campaign(
     db: Session = Depends(get_db),
 ):
     return service.submit_campaign(db, campaign_id, current_user.id)
+
+
+@router.post("/{campaign_id}/evidence", response_model=CampaignEvidencePublic, status_code=201)
+def add_evidence(
+    campaign_id: uuid.UUID,
+    payload: CampaignEvidenceCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return service.add_evidence(db, campaign_id, current_user.id, payload)
+
+
+@router.get("/{campaign_id}/evidence", response_model=list[CampaignEvidencePublic])
+def list_evidence(campaign_id: uuid.UUID, db: Session = Depends(get_db)):
+    return service.list_evidence(db, campaign_id)

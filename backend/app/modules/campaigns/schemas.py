@@ -52,3 +52,20 @@ class CampaignDetail(CampaignPublic):
 
 class RejectRequest(BaseModel):
     notes: str = Field(min_length=1)
+
+
+class CampaignEvidenceCreate(BaseModel):
+    media_id: uuid.UUID
+    evidence_type: str = Field(min_length=1, max_length=64)
+    visibility: str = Field(default="RESTRICTED", pattern="^(PUBLIC|RESTRICTED)$")
+
+
+class CampaignEvidencePublic(BaseModel):
+    id: uuid.UUID
+    campaign_id: uuid.UUID
+    evidence_type: str
+    visibility: str
+    verification_status: str
+    created_at: datetime
+
+    model_config = {"from_attributes": True}

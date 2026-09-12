@@ -88,3 +88,27 @@ def submit_campaign(db: Session, campaign_id: uuid.UUID, user_id: uuid.UUID) -> 
         )
 
     return repository.update_status(db, campaign, "SUBMITTED")
+
+
+def add_evidence(db: Session, campaign_id: uuid.UUID, user_id: uuid.UUID, payload) -> Campaign:
+    campaign = get_campaign_or_404(db, campaign_id)
+    _require_owner(db, campaign, user_id)
+
+    if campaign.status != "DRAFT":
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Evidence can only be added while campaign is in DRAFT",
+        )
+
+    from app.modules.media.service import get_media_or_404
+    media = get_media_or_404(db, payload.media_id)
+    if media.owner_id != user_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not own this media")
+
+    data = payload.model_dump()
+    return repository.add_evidence(db, campaign_id, user_id, data)
+
+
+def list_evidence(db: Session, campaign_id: uuid.UUID):
+    get_campaign_or_404(db, campaign_id)
+    return repository.list_evidence(db, campaign_id)

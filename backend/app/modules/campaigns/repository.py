@@ -45,3 +45,20 @@ def update_status(db: Session, campaign: Campaign, new_status: str) -> Campaign:
 
 def count_evidence(db: Session, campaign_id: uuid.UUID) -> int:
     return db.query(CampaignEvidence).filter(CampaignEvidence.campaign_id == campaign_id).count()
+
+
+def add_evidence(db: Session, campaign_id: uuid.UUID, uploader_id: uuid.UUID, data: dict) -> CampaignEvidence:
+    evidence = CampaignEvidence(
+        campaign_id=campaign_id,
+        uploader_id=uploader_id,
+        verification_status="UPLOADED",
+        **data,
+    )
+    db.add(evidence)
+    db.commit()
+    db.refresh(evidence)
+    return evidence
+
+
+def list_evidence(db: Session, campaign_id: uuid.UUID) -> list[CampaignEvidence]:
+    return db.query(CampaignEvidence).filter(CampaignEvidence.campaign_id == campaign_id).all()
