@@ -9,6 +9,7 @@ from app.modules.media.router import router as media_router
 from app.modules.moderation.router import router as moderation_router
 from app.modules.donations.router import router as donations_router
 from app.modules.payments.router import router as payments_router
+from app.modules.payouts.router import router as payouts_router
 
 api_router = APIRouter(prefix="/api/v1")
 
@@ -21,3 +22,4 @@ api_router.include_router(media_router)
 api_router.include_router(moderation_router)
 api_router.include_router(donations_router)
 api_router.include_router(payments_router)
+api_router.include_router(payouts_router)

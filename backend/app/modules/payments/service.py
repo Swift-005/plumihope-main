@@ -86,7 +86,14 @@ def process_webhook(db: Session, provider_reference: str) -> dict:
     donation = donations_repository.update_status(db, donation, "CONFIRMED")
 
     # Step 5: Update campaign raised_amount atomically.
-    campaigns_repository.increment_raised_amount(db, donation.campaign_id, donation.amount)
+    campaign = campaigns_repository.increment_raised_amount(db, donation.campaign_id, donation.amount)
+
+    # Cross-entity rule: campaign -> TARGET_REACHED only from confirmed
+    # donation total, never from a client-provided flag.
+    if campaign.status == "ACTIVE" and campaign.raised_amount >= campaign.target_amount:
+        from app.modules.campaigns.state_machine import validate_transition as validate_campaign_transition
+        validate_campaign_transition(campaign.status, "TARGET_REACHED")
+        campaigns_repository.update_status(db, campaign, "TARGET_REACHED")
 
     # Step 6: Audit log.
     audit_repository.create_log(
