@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.modules.auth.dependencies import get_current_user
 from app.modules.campaigns import service
-from app.modules.campaigns.schemas import CampaignCreate, CampaignUpdateRequest, CampaignPublic, CampaignDetail, CampaignEvidenceCreate, CampaignEvidencePublic, WhyVerifiedResponse
+from app.modules.campaigns.schemas import CampaignCreate, CampaignUpdateRequest, CampaignPublic, CampaignDetail, CampaignEvidenceCreate, CampaignEvidencePublic, WhyVerifiedResponse, AssistanceProofSubmit
 from app.schemas.pagination import PaginatedResponse
 from app.modules.users.models import User
 
@@ -84,3 +84,22 @@ def list_evidence(campaign_id: uuid.UUID, db: Session = Depends(get_db)):
 @router.get("/{campaign_id}/why-verified", response_model=WhyVerifiedResponse)
 def get_why_verified(campaign_id: uuid.UUID, db: Session = Depends(get_db)):
     return service.get_why_verified(db, campaign_id)
+
+
+@router.post("/{campaign_id}/assistance/confirm-delivered", response_model=CampaignDetail)
+def confirm_assistance_delivered(
+    campaign_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return service.confirm_assistance_delivered(db, campaign_id, current_user.id)
+
+
+@router.post("/{campaign_id}/assistance/proof", response_model=CampaignDetail)
+def submit_assistance_proof(
+    campaign_id: uuid.UUID,
+    payload: AssistanceProofSubmit,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return service.submit_assistance_proof(db, campaign_id, current_user.id, payload)

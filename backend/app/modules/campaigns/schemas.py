@@ -81,3 +81,10 @@ class WhyVerifiedResponse(BaseModel):
         "Verified means the listed checks were completed and reviewed. "
         "It is not a guarantee of absolute certainty."
     )
+
+
+class AssistanceProofSubmit(BaseModel):
+    media_id: uuid.UUID
+    delivery_date: date
+    amount_delivered: Decimal = Field(gt=0)
+    notes: str | None = None

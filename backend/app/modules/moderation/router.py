@@ -49,3 +49,13 @@ def request_more_info(
     db: Session = Depends(get_db),
 ):
     return service.request_more_info(db, campaign_id, current_user.id, payload.notes)
+
+
+@router.post("/campaigns/{campaign_id}/final-approve", response_model=CampaignDetail)
+def approve_final_review(
+    campaign_id: uuid.UUID,
+    payload: ApprovalRequest,
+    current_user: User = Depends(require_permission("campaign:approve")),
+    db: Session = Depends(get_db),
+):
+    return service.approve_final_review(db, campaign_id, current_user.id, payload.notes)

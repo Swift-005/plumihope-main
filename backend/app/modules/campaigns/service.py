@@ -167,3 +167,42 @@ def get_why_verified(db: Session, campaign_id: uuid.UUID) -> dict:
         "campaign_moderator_approved": campaign_moderator_approved,
         "last_reviewed_at": last_reviewed_at,
     }
+
+
+def confirm_assistance_delivered(db: Session, campaign_id: uuid.UUID, user_id: uuid.UUID) -> Campaign:
+    campaign = get_campaign_or_404(db, campaign_id)
+    _require_owner(db, campaign, user_id)
+
+    validate_transition(campaign.status, "ASSISTANCE_DELIVERED")
+    return repository.update_status(db, campaign, "ASSISTANCE_DELIVERED")
+
+
+def submit_assistance_proof(db: Session, campaign_id: uuid.UUID, user_id: uuid.UUID, payload) -> Campaign:
+    campaign = get_campaign_or_404(db, campaign_id)
+    _require_owner(db, campaign, user_id)
+
+    if campaign.status != "ASSISTANCE_DELIVERED":
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Assistance must be confirmed delivered before proof can be submitted",
+        )
+
+    from app.modules.media.service import get_media_or_404
+    media = get_media_or_404(db, payload.media_id)
+    if media.owner_id != user_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not own this media")
+
+    from app.modules.campaigns.models import CampaignUpdate
+    content = (
+        f"Assistance proof submitted. Delivery date: {payload.delivery_date}. "
+        f"Amount delivered: {payload.amount_delivered}."
+    )
+    if payload.notes:
+        content += f" Notes: {payload.notes}"
+
+    update = CampaignUpdate(campaign_id=campaign_id, author_id=user_id, content=content)
+    db.add(update)
+    db.commit()
+
+    validate_transition(campaign.status, "FINAL_REVIEW")
+    return repository.update_status(db, campaign, "FINAL_REVIEW")

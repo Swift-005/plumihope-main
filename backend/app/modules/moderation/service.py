@@ -78,3 +78,19 @@ def request_more_info(db: Session, campaign_id: uuid.UUID, reviewer_id: uuid.UUI
 
     _create_review(db, reviewer_id, campaign_id, "MORE_INFO_REQUESTED", notes)
     return campaign
+
+
+def approve_final_review(db: Session, campaign_id: uuid.UUID, reviewer_id: uuid.UUID, notes: str | None) -> Campaign:
+    campaign = _get_campaign_under_review(db, campaign_id)
+
+    if campaign.status != "FINAL_REVIEW":
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Campaign must be in FINAL_REVIEW before final approval",
+        )
+
+    validate_transition(campaign.status, "SUCCESSFUL")
+    campaign = campaigns_repository.update_status(db, campaign, "SUCCESSFUL")
+    _create_review(db, reviewer_id, campaign_id, "FINAL_APPROVED", notes)
+
+    return campaign
