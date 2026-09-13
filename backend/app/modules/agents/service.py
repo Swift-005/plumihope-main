@@ -42,7 +42,15 @@ def review_decision(
     validate_transition(profile.status, decision)
 
     repository.create_verification_record(db, agent_profile_id, reviewer_id, decision, notes)
-    return repository.update_status(db, profile, decision)
+    profile = repository.update_status(db, profile, decision)
+
+    from app.modules.notifications.service import notify
+    if decision == "VERIFIED":
+        notify(db, profile.user_id, "AGENT_VERIFIED", "Agent application approved", "You are now a verified Agent.")
+    elif decision == "REJECTED":
+        notify(db, profile.user_id, "AGENT_REJECTED", "Agent application rejected", notes or "Your application was not approved.")
+
+    return profile
 
 
 def suspend_agent(db: Session, agent_profile_id: uuid.UUID, reviewer_id: uuid.UUID, notes: str | None) -> AgentProfile:

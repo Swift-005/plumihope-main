@@ -107,6 +107,13 @@ def process_webhook(db: Session, provider_reference: str) -> dict:
         metadata={"provider_reference": provider_reference},
     )
 
+    from app.modules.notifications.service import notify
+    notify(
+        db, donation.user_id, "DONATION_CONFIRMED",
+        "Donation confirmed",
+        f"Your donation of {donation.amount} {donation.currency} was confirmed.",
+    )
+
     # Step 7: commit already happened via repository calls (each is its own
     # transaction here for simplicity; row locks held throughout this
     # function's session scope prevent concurrent double-processing).
