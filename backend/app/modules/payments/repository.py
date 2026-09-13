@@ -32,3 +32,12 @@ def update_status(db: Session, payment: Payment, new_status: str) -> Payment:
     db.commit()
     db.refresh(payment)
     return payment
+
+
+def get_by_provider_reference_for_update(db: Session, provider_reference: str) -> Payment | None:
+    return (
+        db.query(Payment)
+        .filter(Payment.provider_reference == provider_reference)
+        .with_for_update()
+        .first()
+    )

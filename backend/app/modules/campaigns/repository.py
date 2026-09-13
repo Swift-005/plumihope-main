@@ -100,3 +100,11 @@ def search_public_campaigns(
         .all()
     )
     return items, total
+
+
+def increment_raised_amount(db: Session, campaign_id: uuid.UUID, amount) -> Campaign:
+    campaign = db.query(Campaign).filter(Campaign.id == campaign_id).with_for_update().first()
+    campaign.raised_amount = campaign.raised_amount + amount
+    db.commit()
+    db.refresh(campaign)
+    return campaign

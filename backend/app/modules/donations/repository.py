@@ -32,3 +32,7 @@ def update_status(db: Session, donation: Donation, new_status: str) -> Donation:
     db.commit()
     db.refresh(donation)
     return donation
+
+
+def get_by_id_for_update(db: Session, donation_id: uuid.UUID) -> Donation | None:
+    return db.query(Donation).filter(Donation.id == donation_id).with_for_update().first()

@@ -26,3 +26,7 @@ class PaymentPublic(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class WebhookPayload(BaseModel):
+    provider_reference: str
