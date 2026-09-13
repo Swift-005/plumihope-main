@@ -13,6 +13,9 @@ class Settings(BaseSettings):
     s3_access_key: str
     s3_secret_key: str
 
+    payment_provider: str = "sandbox"
+    payment_api_key: str = ""
+
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 
