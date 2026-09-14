@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import Combine
 
 @main
 struct PlumiHopeApp: App {
@@ -23,9 +24,12 @@ struct PlumiHopeApp: App {
         }
     }()
 
+    @StateObject private var authManager = AuthManager.shared
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            RootView()
+                .environmentObject(authManager)
         }
         .modelContainer(sharedModelContainer)
     }
