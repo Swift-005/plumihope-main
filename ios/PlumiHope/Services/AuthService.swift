@@ -29,6 +29,14 @@ struct LoginRequest: Encodable {
     let password: String
 }
 
+struct RefreshRequest: Encodable {
+    let refreshToken: String
+
+    enum CodingKeys: String, CodingKey {
+        case refreshToken = "refresh_token"
+    }
+}
+
 final class AuthService {
     static let shared = AuthService()
     private let client = APIClient.shared
@@ -50,5 +58,11 @@ final class AuthService {
     func getCurrentUser() async throws -> User {
         let endpoint = APIEndpoint(path: "/auth/me", method: .get, requiresAuth: true)
         return try await client.request(endpoint)
+    }
+
+    func refresh(refreshToken: String) async throws -> TokenResponse {
+        let body = RefreshRequest(refreshToken: refreshToken)
+        let endpoint = APIEndpoint(path: "/auth/refresh", method: .post, requiresAuth: false)
+        return try await client.request(endpoint, body: body)
     }
 }

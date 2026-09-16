@@ -16,6 +16,8 @@ final class APIClient {
         return encoder
     }()
 
+    private var isRefreshing = false
+
     private init() {}
 
     func request<T: Decodable>(
@@ -34,7 +36,7 @@ final class APIClient {
         _ = try await requestData(endpoint, body: body)
     }
 
-    private func requestData(_ endpoint: APIEndpoint, body: Encodable?) async throws -> Data {
+    private func requestData(_ endpoint: APIEndpoint, body: Encodable?, isRetry: Bool = false) async throws -> Data {
         guard var components = URLComponents(string: baseURL + endpoint.path) else {
             throw APIError.invalidURL
         }
@@ -66,6 +68,15 @@ final class APIClient {
         case 200...299:
             return data
         case 401:
+            if endpoint.requiresAuth && !isRetry {
+                let refreshed = await attemptTokenRefresh()
+                if refreshed {
+                    return try await requestData(endpoint, body: body, isRetry: true)
+                }
+            }
+            await MainActor.run {
+                AuthManager.shared.logout()
+            }
             throw APIError.unauthorized
         case 403:
             throw APIError.forbidden
@@ -74,6 +85,22 @@ final class APIClient {
         default:
             let message = (try? decoder.decode([String: String].self, from: data))?["detail"] ?? "Server error"
             throw APIError.serverError(statusCode: httpResponse.statusCode, message: message)
+        }
+    }
+
+    private func attemptTokenRefresh() async -> Bool {
+        guard !isRefreshing else { return false }
+        guard let refreshToken = tokenStore.getRefreshToken() else { return false }
+
+        isRefreshing = true
+        defer { isRefreshing = false }
+
+        do {
+            let tokens: TokenResponse = try await AuthService.shared.refresh(refreshToken: refreshToken)
+            tokenStore.saveTokens(accessToken: tokens.accessToken, refreshToken: tokens.refreshToken)
+            return true
+        } catch {
+            return false
         }
     }
 }
