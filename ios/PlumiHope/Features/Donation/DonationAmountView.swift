@@ -2,9 +2,9 @@ import SwiftUI
 
 struct DonationAmountView: View {
     let campaign: Campaign
+    var navigationPath: Binding<NavigationPath>?
     @State private var selectedAmount: Double?
     @State private var customAmount: String = ""
-    @State private var confirmedAmount: Double?
 
     private let presetAmounts: [Double] = [500, 1000, 2000]
 
@@ -50,7 +50,9 @@ struct DonationAmountView: View {
             Spacer()
 
             Button {
-                confirmedAmount = selectedAmount
+                if let amount = selectedAmount {
+                    navigationPath?.wrappedValue.append(DonationReviewRoute(campaign: campaign, amount: amount))
+                }
             } label: {
                 Text("Continue")
                     .frame(maxWidth: .infinity)
@@ -61,8 +63,10 @@ struct DonationAmountView: View {
         .padding()
         .navigationTitle("Donate")
         .navigationBarTitleDisplayMode(.inline)
-        .navigationDestination(item: $confirmedAmount) { amount in
-            DonationReviewView(campaign: campaign, amount: amount)
-        }
     }
+}
+
+struct DonationReviewRoute: Hashable {
+    let campaign: Campaign
+    let amount: Double
 }

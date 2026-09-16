@@ -2,10 +2,10 @@ import SwiftUI
 
 struct ExploreView: View {
     @StateObject private var viewModel = ExploreViewModel()
-    @State private var selectedCampaignId: UUID?
+    @State private var path = NavigationPath()
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $path) {
             Group {
                 if viewModel.isLoading && viewModel.campaigns.isEmpty {
                     ProgressView()
@@ -36,7 +36,7 @@ struct ExploreView: View {
                         LazyVStack(spacing: 16) {
                             ForEach(viewModel.campaigns) { campaign in
                                 Button {
-                                    selectedCampaignId = campaign.id
+                                    path.append(campaign.id)
                                 } label: {
                                     CampaignCard(campaign: campaign)
                                 }
@@ -52,8 +52,17 @@ struct ExploreView: View {
             .onSubmit(of: .search) {
                 Task { await viewModel.loadCampaigns() }
             }
-            .navigationDestination(item: $selectedCampaignId) { campaignId in
-                CampaignDetailView(campaignId: campaignId)
+            .navigationDestination(for: UUID.self) { campaignId in
+                CampaignDetailView(campaignId: campaignId, navigationPath: $path)
+            }
+            .navigationDestination(for: DonationRoute.self) { route in
+                switch route {
+                case .amount(let campaign):
+                    DonationAmountView(campaign: campaign, navigationPath: $path)
+                }
+            }
+            .navigationDestination(for: DonationReviewRoute.self) { route in
+                DonationReviewView(campaign: route.campaign, amount: route.amount, navigationPath: $path)
             }
             .task {
                 await viewModel.loadCampaigns()

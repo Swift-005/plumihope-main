@@ -2,9 +2,11 @@ import SwiftUI
 
 struct CampaignDetailView: View {
     @StateObject private var viewModel: CampaignDetailViewModel
+    var navigationPath: Binding<NavigationPath>?
 
-    init(campaignId: UUID) {
+    init(campaignId: UUID, navigationPath: Binding<NavigationPath>? = nil) {
         _viewModel = StateObject(wrappedValue: CampaignDetailViewModel(campaignId: campaignId))
+        self.navigationPath = navigationPath
     }
 
     var body: some View {
@@ -43,8 +45,8 @@ struct CampaignDetailView: View {
                                 .tint(.green)
                         }
 
-                        NavigationLink {
-                            DonationAmountView(campaign: campaign)
+                        Button {
+                            navigationPath?.wrappedValue.append(DonationRoute.amount(campaign))
                         } label: {
                             Text("Donate")
                                 .frame(maxWidth: .infinity)

@@ -2,17 +2,18 @@ import SwiftUI
 
 struct DonationReviewView: View {
     @StateObject private var viewModel: DonationReviewViewModel
-    @Environment(\.dismiss) private var dismiss
+    var navigationPath: Binding<NavigationPath>?
 
-    init(campaign: Campaign, amount: Double) {
+    init(campaign: Campaign, amount: Double, navigationPath: Binding<NavigationPath>? = nil) {
         _viewModel = StateObject(wrappedValue: DonationReviewViewModel(campaign: campaign, amount: amount))
+        self.navigationPath = navigationPath
     }
 
     var body: some View {
         Group {
             if viewModel.isConfirmed, let donation = viewModel.donation {
                 DonationConfirmedView(donation: donation) {
-                    dismiss()
+                    navigationPath?.wrappedValue = NavigationPath()
                 }
             } else if viewModel.paymentInitiated {
                 DonationPendingView()
