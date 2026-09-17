@@ -12,6 +12,11 @@ struct MainTabView: View {
                 .tabItem {
                     Label("Discover", systemImage: "magnifyingglass")
                 }
+
+            HelpRequestStartView()
+                .tabItem {
+                    Label("Request Help", systemImage: "hand.raised")
+                }
         }
     }
 }
