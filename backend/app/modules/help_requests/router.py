@@ -36,6 +36,15 @@ def list_help_requests(
     return service.list_help_requests(db, status)
 
 
+@router.get("/me", response_model=list[HelpRequestDetail])
+def list_my_help_requests(
+    status: str | None = Query(default=None),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return service.list_my_help_requests(db, current_user.id, status)
+
+
 @router.get("/{help_request_id}", response_model=HelpRequestDetail)
 def get_help_request(help_request_id: uuid.UUID, db: Session = Depends(get_db)):
     return service.get_help_request_or_404(db, help_request_id)

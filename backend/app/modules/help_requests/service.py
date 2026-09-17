@@ -25,6 +25,10 @@ def list_help_requests(db: Session, status: str | None = None) -> list[HelpReque
     return repository.list_help_requests(db, status)
 
 
+def list_my_help_requests(db: Session, user_id: uuid.UUID, status: str | None = None) -> list[HelpRequest]:
+    return repository.list_by_user(db, user_id, status)
+
+
 def get_help_request_or_404(db: Session, help_request_id: uuid.UUID) -> HelpRequest:
     help_request = repository.get_help_request(db, help_request_id)
     if not help_request:

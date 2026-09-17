@@ -21,6 +21,13 @@ def list_help_requests(db: Session, status: str | None = None) -> list[HelpReque
     return query.order_by(HelpRequest.created_at.desc()).all()
 
 
+def list_by_user(db: Session, user_id: uuid.UUID, status: str | None = None) -> list[HelpRequest]:
+    query = db.query(HelpRequest).filter(HelpRequest.user_id == user_id)
+    if status:
+        query = query.filter(HelpRequest.status == status)
+    return query.order_by(HelpRequest.created_at.desc()).all()
+
+
 def get_help_request(db: Session, help_request_id: uuid.UUID) -> HelpRequest | None:
     return db.query(HelpRequest).filter(HelpRequest.id == help_request_id).first()
 
