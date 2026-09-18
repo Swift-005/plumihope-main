@@ -4,6 +4,8 @@ enum HelpRequestRoute: Hashable {
     case details
     case review
     case submitted
+    case myRequests
+    case status(UUID)
 }
 
 struct HelpRequestStartView: View {
@@ -26,10 +28,17 @@ struct HelpRequestStartView: View {
     var body: some View {
         NavigationStack(path: $path) {
             VStack(spacing: 20) {
-                Text("Request help")
-                    .font(.title)
-                    .fontWeight(.semibold)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                HStack {
+                    Text("Request help")
+                        .font(.title)
+                        .fontWeight(.semibold)
+                    Spacer()
+                    Button("My Requests") {
+                        path.append(HelpRequestRoute.myRequests)
+                    }
+                    .font(.subheadline)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
 
                 Text("What kind of help is needed?")
                     .font(.subheadline)
@@ -71,6 +80,10 @@ struct HelpRequestStartView: View {
                     HelpRequestReviewView(viewModel: viewModel, path: $path)
                 case .submitted:
                     HelpRequestSubmittedView(viewModel: viewModel, path: $path)
+                case .myRequests:
+                    MyHelpRequestsView(path: $path)
+                case .status(let requestId):
+                    HelpRequestStatusView(requestId: requestId)
                 }
             }
         }

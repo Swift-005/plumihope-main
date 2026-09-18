@@ -71,8 +71,8 @@ final class HelpRequestService {
         return try await client.request(endpoint)
     }
 
-    func listMyHelpRequests() async throws -> [HelpRequest] {
-        let endpoint = APIEndpoint(path: "/help-requests", method: .get, requiresAuth: false)
+    func listMyHelpRequests() async throws -> [HelpRequestDetail] {
+        let endpoint = APIEndpoint(path: "/help-requests/me", method: .get, requiresAuth: true)
         return try await client.request(endpoint)
     }
 }
