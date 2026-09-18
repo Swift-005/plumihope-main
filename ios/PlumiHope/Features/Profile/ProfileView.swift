@@ -43,6 +43,12 @@ struct ProfileView: View {
                             } label: {
                                 Label("Help requests", systemImage: "hand.raised")
                             }
+
+                            Button {
+                                path.append(ProfileRoute.myDonations)
+                            } label: {
+                                Label("My donations", systemImage: "heart.text.square")
+                            }
                         }
 
                         Section {
@@ -60,6 +66,8 @@ struct ProfileView: View {
                 switch route {
                 case .myHelpRequests:
                     MyHelpRequestsView(path: $path)
+                case .myDonations:
+                    MyDonationsView(path: $path)
                 }
             }
             .navigationDestination(for: HelpRequestRoute.self) { route in
@@ -68,6 +76,12 @@ struct ProfileView: View {
                     HelpRequestStatusView(requestId: requestId)
                 default:
                     EmptyView()
+                }
+            }
+            .navigationDestination(for: MyDonationsRoute.self) { route in
+                switch route {
+                case .detail(let donationId):
+                    DonationDetailLoaderView(donationId: donationId)
                 }
             }
             .task {
@@ -79,6 +93,7 @@ struct ProfileView: View {
 
 enum ProfileRoute: Hashable {
     case myHelpRequests
+    case myDonations
 }
 
 #Preview {
