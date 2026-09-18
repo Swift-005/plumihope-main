@@ -35,6 +35,12 @@ struct ProfileView: View {
                                     .foregroundColor(.secondary)
                             }
                             .padding(.vertical, 4)
+
+                            Button {
+                                path.append(ProfileRoute.editProfile)
+                            } label: {
+                                Text("Edit profile")
+                            }
                         }
 
                         Section("Activity") {
@@ -76,6 +82,12 @@ struct ProfileView: View {
                     MyDonationsView(path: $path)
                 case .notifications:
                     NotificationsView()
+                case .editProfile:
+                    if let user = viewModel.user {
+                        EditProfileView(user: user) {
+                            Task { await viewModel.load() }
+                        }
+                    }
                 }
             }
             .navigationDestination(for: HelpRequestRoute.self) { route in
@@ -103,6 +115,7 @@ enum ProfileRoute: Hashable {
     case myHelpRequests
     case myDonations
     case notifications
+    case editProfile
 }
 
 #Preview {
