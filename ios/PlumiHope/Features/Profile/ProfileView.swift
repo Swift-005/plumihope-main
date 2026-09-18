@@ -39,6 +39,12 @@ struct ProfileView: View {
 
                         Section("Activity") {
                             Button {
+                                path.append(ProfileRoute.notifications)
+                            } label: {
+                                Label("Notifications", systemImage: "bell")
+                            }
+
+                            Button {
                                 path.append(ProfileRoute.myHelpRequests)
                             } label: {
                                 Label("Help requests", systemImage: "hand.raised")
@@ -68,6 +74,8 @@ struct ProfileView: View {
                     MyHelpRequestsView(path: $path)
                 case .myDonations:
                     MyDonationsView(path: $path)
+                case .notifications:
+                    NotificationsView()
                 }
             }
             .navigationDestination(for: HelpRequestRoute.self) { route in
@@ -94,6 +102,7 @@ struct ProfileView: View {
 enum ProfileRoute: Hashable {
     case myHelpRequests
     case myDonations
+    case notifications
 }
 
 #Preview {
