@@ -17,6 +17,11 @@ struct MainTabView: View {
                 .tabItem {
                     Label("Request Help", systemImage: "hand.raised")
                 }
+
+            ProfileView()
+                .tabItem {
+                    Label("Profile", systemImage: "person.circle")
+                }
         }
     }
 }
